@@ -1,5 +1,5 @@
 /**
- * ng-context-menu - v1.0.1 - An AngularJS directive to display a context menu
+ * ng-context-menu - v1.0.2 - An AngularJS directive to display a context menu
  * when a right-click event is triggered
  *
  * @author Ian Kennington Walter (http://ianvonwalter.com)
@@ -27,8 +27,6 @@
             'closeCallback': '&contextMenuClose'
           },
           link: function($scope, $element, $attrs) {
-            var opened = false;
-
             function open(event, menuElement) {
               menuElement.addClass('open');
 
@@ -56,17 +54,14 @@
 
               menuElement.css('top', top + 'px');
               menuElement.css('left', left + 'px');
-              opened = true;
             }
 
             function close(menuElement) {
-              menuElement.removeClass('open');
-
-              if (opened) {
+              if (isOpened()) {
                 $scope.closeCallback();
               }
 
-              opened = false;
+              menuElement.removeClass('open');
             }
 
             $element.bind('contextmenu', function(event) {
@@ -93,7 +88,7 @@
 
             function handleKeyUpEvent(event) {
               //console.log('keyup');
-              if (!$scope.disabled() && opened && event.keyCode === 27) {
+              if (!$scope.disabled() && isOpened() && event.keyCode === 27) {
                 $scope.$apply(function() {
                   close(ContextMenuService.menuElement);
                 });
@@ -102,13 +97,18 @@
 
             function handleClickEvent(event) {
               if (!$scope.disabled() &&
-                opened &&
+                isOpened() &&
                 (event.button !== 2 ||
                   event.target !== ContextMenuService.element)) {
                 $scope.$apply(function() {
                   close(ContextMenuService.menuElement);
                 });
               }
+            }
+
+            function isOpened() {
+              return ContextMenuService.menuElement &&
+                ContextMenuService.menuElement.hasClass('open');
             }
 
             $document.bind('keyup', handleKeyUpEvent);
